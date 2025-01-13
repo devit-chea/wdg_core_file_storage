@@ -33,8 +33,6 @@ class FileManager:
         model_fields = {field.name for field in model._meta.get_fields()}
         
         for file_meta in files_meta:
-            print(file_meta.keys())
-            
             if not isinstance(file_meta, dict):
                 raise ValueError("Each file metadata must be a dictionary.")
             if not set(file_meta.keys()).issubset(model_fields):                
