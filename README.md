@@ -14,6 +14,10 @@
 
 ---
 
+## Utils and Helper Function
+
+- **save_files_meta_data** Save files meta data with dynamic model
+
 ## Requirements
 
 - Python 3.8+

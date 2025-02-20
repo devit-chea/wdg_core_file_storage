@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name="wdg-file-storage",
-    version="0.1.10",    
+    version="0.1.11",    
     packages=find_packages(),
     include_package_data=True,
     install_requires=[
