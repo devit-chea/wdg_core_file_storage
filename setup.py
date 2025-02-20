@@ -7,11 +7,12 @@ setup(
     packages=find_packages(),
     include_package_data=True,
     install_requires=[
-        "django>=3.8",
+        "django>=3.2",
         "boto3",
-        "django-storages",
+        "storages",
+        "storages.backends",
     ],
-    description="Reusable DRF package for X functionality",
+    description="Support for s3 storage backends in Django"
     long_description=open("README.md").read(),
     long_description_content_type="text/markdown",
     keywords="storage service s3",
