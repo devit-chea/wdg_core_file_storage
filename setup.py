@@ -1,13 +1,13 @@
 from setuptools import setup, find_packages
+from wdg_file_storage import __version__
 
 setup(
     name="wdg-file-storage",
-    version="0.1.11",    
+    version=__version__,    
     packages=find_packages(),
     include_package_data=True,
     install_requires=[
         "django>=3.8",
-        "djangorestframework==3.14.0",
         "boto3",
         "django-storages",
     ],
