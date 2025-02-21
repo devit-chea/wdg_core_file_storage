@@ -4,7 +4,7 @@ from django.conf import settings
 from base import MultiStorage
 from django.db import models
 
-from wdg_file_storage.constants import StorageProvider, UploadStatus
+from wdg_core_file_storage.constants import StorageProvider, UploadStatus
 
 
 class FileStorageModel(models.Model):
@@ -13,9 +13,7 @@ class FileStorageModel(models.Model):
     image_url = models.FileField(
         max_length=1024, db_column="image_url", storage=MultiStorage(backend_name="s3")
     )
-    file_path = models.FileField(
-        max_length=1024, blank=False, null=True, storage=MultiStorage(backend_name="s3")
-    )
+    file_path = models.TextField(max_length=1024, blank=False, null=True)
     file_type = models.CharField(max_length=255, blank=False, null=True)
     description = models.TextField(blank=False, null=True)
     ref_type = models.CharField(max_length=100, blank=True, null=True)
@@ -42,10 +40,7 @@ class FileStorageModel(models.Model):
     write_uid = models.IntegerField(blank=True, null=True, editable=False)
 
     class Meta:
-    #     db_table = "file_storage"
-        abstract = (
-            "wdg_file_storage.file_storage" not in settings.INSTALLED_APPS
-        )
+        abstract = "wdg_file_storage.file_storage" not in settings.INSTALLED_APPS
 
     def __str__(self) -> str:
         return self.original_file_name or self.file_name

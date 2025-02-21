@@ -1,5 +1,5 @@
 from setuptools import setup, find_packages
-from wdg_file_storage import __version__
+from wdg_core_file_storage import __version__
 
 setup(
     name="wdg-file-storage",
@@ -8,8 +8,8 @@ setup(
     include_package_data=True,
     install_requires=[
         "django>=3.9",
-        # "boto3",
-        # "storages",
+        "boto3",
+        "storages",
     ],
     python_requires=">=3.9",
     description="Support for s3 storage backends in Django",
