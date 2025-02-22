@@ -25,12 +25,14 @@ class FileStorageModel(models.Model):
     file_size = models.CharField(max_length=250, blank=False, null=True)
     deleted = models.BooleanField(default=False, blank=True, null=True)
     storage_provider = models.CharField(
+        max_length=64,
         blank=True,
         null=True,
         default=StorageProvider.S3,
         choices=StorageProvider.CHOICES,
     )
     upload_status = models.CharField(
+        max_length=64,
         blank=True,
         null=True,
         default=UploadStatus.PENDING,

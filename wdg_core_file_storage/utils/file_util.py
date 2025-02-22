@@ -109,3 +109,6 @@ def split_first_path(path):
     remaining_path = parts[1] if len(parts) > 1 else ""
     
     return remaining_path
+
+def format_lazy(s: str, *args, **kwargs) -> str:
+    return s.format(*args, **kwargs)

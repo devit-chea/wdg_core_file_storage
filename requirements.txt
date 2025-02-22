@@ -2,3 +2,5 @@ Django
 djangorestframework
 boto3
 django-storages
+setuptools
+twine
