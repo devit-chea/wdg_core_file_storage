@@ -1,26 +1,26 @@
 import os
 import uuid
 
-from base import S3MediaStorage
+from wdg_core_file_storage.base import S3MediaStorage
 from django.core.files.storage import FileSystemStorage
-from django.core.files.storage import get_storage_class
+# from django.core.files.storage import get_storage_class
 from django.conf import settings
 
-def get_storage_backend(name="default"):
-    """
-    Get the storage backend dynamically.
-    :param name: Name of the storage backend (e.g., "default" or "s3").
-    :return: Instance of the storage backend.
-    """
+# def get_storage_backend(name="default"):
+#     """
+#     Get the storage backend dynamically.
+#     :param name: Name of the storage backend (e.g., "default" or "s3").
+#     :return: Instance of the storage backend.
+#     """
     
-    if name not in settings.STORAGES:
-        raise ValueError(f"Storage backend '{name}' is not defined in STORAGES.")
+#     if name not in settings.STORAGES:
+#         raise ValueError(f"Storage backend '{name}' is not defined in STORAGES.")
     
-    storage_config = settings.STORAGES[name]
-    backend_class = get_storage_class(storage_config["BACKEND"])
-    options = storage_config.get("OPTIONS", {})
+#     storage_config = settings.STORAGES[name]
+#     backend_class = get_storage_class(storage_config["BACKEND"])
+#     options = storage_config.get("OPTIONS", {})
     
-    return backend_class(**options)
+#     return backend_class(**options)
 
 def get_storage(provider=None):
     """
