@@ -1,126 +1,65 @@
-import logging
-import threading
-
 import boto3
-from botocore.config import Config
+import logging
 from botocore.exceptions import (
-    ClientError,
-    EndpointConnectionError,
     NoCredentialsError,
+    ClientError,
     PartialCredentialsError,
+    EndpointConnectionError,
 )
 from django.conf import settings
 
-from wdg_file_storage.helpers.s3_helpers import get_bucket_name
+from wdg_core_file_storage.helpers.s3_helpers import get_bucket_name
+
 
 logger = logging.getLogger(__name__)
 
 
 class S3Client:
     """
-    A reusable and extendable client for interacting with S3-compatible storage.
+    A wrapper for the boto3 S3 client to abstract and simplify interactions with S3-compatible storage.
 
-    Features include lazy initialization, enhanced error handling, presigned URL generation,
-    and upload operations. Designed to be scalable and testable.
+    This class initializes a connection to an S3-compatible service using credentials and endpoint
+    configurations specified in the Django settings module. It provides a reusable client instance
+    for performing operations such as uploading, downloading, and managing files in S3 buckets.
+
+    Attributes:
+        client: An instance of the boto3 S3 client configured with the necessary credentials
+        and endpoint details.
     """
 
-    _instance = None
-    _lock = threading.Lock()
-
-    def __new__(cls, *args, **kwargs):
-        """
-        Singleton pattern to ensure only one instance of S3Client exists.
-        """
-        if not cls._instance:
-            with cls._lock:
-                if not cls._instance:
-                    cls._instance = super().__new__(cls, *args, **kwargs)
-        return cls._instance
-
-    def __init__(self, session=None):
-        """
-        Initialize the S3Client.
-
-        :param session: A custom boto3.Session instance for multi-account or multi-region use.
-        """
-        self.client = None
-        self.session = session or boto3.Session()
+    def __init__(self):
         self.s3_client_init = "S3 client is not initialized."
+        self.client = None  # Initialize client as None
+        try:
+            self.client = boto3.client(
+                service_name="s3",  # Specifies the AWS S3 service.
+                endpoint_url=f"https://{settings.S3_ENDPOINT_URL}",  # Custom endpoint for S3-compatible services.
+                aws_access_key_id=settings.S3_ACCESS_KEY_ID,  # Access key for authentication.
+                aws_secret_access_key=settings.S3_SECRET_ACCESS_KEY,  # Secret key for authentication.
+            )
+        except (NoCredentialsError, PartialCredentialsError) as e:
+            logger.error(f"Credentials error: {e}")
+            # Optionally, re-raise or handle the error, e.g., logging, notifying admin
+        except EndpointConnectionError as e:
+            logger.error(f"Endpoint connection error: {e}")
+            # Handle the error if the endpoint is unreachable
+        except Exception as e:
+            logger.error(f"An error occurred while initializing the S3 client: {e}")
+            # Handle other exceptions, such as general network issues
 
-    def _validate_settings(self):
+    def upload_file(self, bucket_name, file_name, file_data):
         """
-        Validate that all required settings are configured.
-        """
-        required_settings = [
-            "S3_ENDPOINT_URL",
-            "S3_ACCESS_KEY_ID",
-            "S3_SECRET_ACCESS_KEY",
-        ]
-        for setting in required_settings:
-            if not hasattr(settings, setting):
-                logger.error(f"Missing required S3 setting: {setting}")
-                raise ValueError(f"Missing required S3 setting: {setting}")
-
-    def _get_client(self):
-        """
-        Lazily initialize and return the boto3 S3 client.
+        Upload a file to the S3-compatible storage.
         """
         if self.client is None:
-            self._validate_settings()
-            try:
-                config = Config(retries={"max_attempts": 10, "mode": "standard"})
-                self.client = self.session.client(
-                    service_name="s3",
-                    endpoint_url=f"https://{settings.S3_ENDPOINT_URL}",
-                    aws_access_key_id=settings.S3_ACCESS_KEY_ID,
-                    aws_secret_access_key=settings.S3_SECRET_ACCESS_KEY,
-                    config=config,
-                )
-            except (NoCredentialsError, PartialCredentialsError) as e:
-                logger.error(f"Credentials error: {e}")
-                raise
-            except EndpointConnectionError as e:
-                logger.error(f"Endpoint connection error: {e}")
-                raise
-            except Exception as e:
-                logger.error(f"Failed to initialize S3 client: {e}")
-                raise
-        return self.client
+            logger.error(self.s3_client_init)
+            return None
 
-    def list_files(self, bucket_name: str, prefix: str = "") -> list:
-        """
-        List files in the specified S3 bucket.
-
-        :param bucket_name: Name of the S3 bucket.
-        :param prefix: Prefix to filter files.
-        :return: List of file keys or an empty list on failure.
-        """
-        
-        client = self._get_client()
         try:
-            response = client.list_objects_v2(Bucket=bucket_name, Prefix=prefix)
-            return [obj["Key"] for obj in response.get("Contents", [])]
-        except ClientError as e:
-            logger.error(f"Failed to list files in bucket {bucket_name}: {e}")
-            return []
-
-    def upload_file(self, bucket_name: str, file_name: str, file_data) -> bool:
-        """
-        Upload a file to the specified S3 bucket.
-
-        :param bucket_name: Name of the S3 bucket.
-        :param file_name: Name of the file (key) to upload.
-        :param file_data: File data to upload.
-        :return: True if successful, False otherwise.
-        """
-        client = self._get_client()
-        try:
-            client.put_object(Bucket=bucket_name, Key=file_name, Body=file_data)
+            self.client.put_object(Bucket=bucket_name, Key=file_name, Body=file_data)
             logger.info(f"File {file_name} uploaded successfully to {bucket_name}.")
-            return True
-        except ClientError as e:
+        except Exception as e:
             logger.error(f"Failed to upload file {file_name}: {e}")
-            return False
 
     def generate_upload_presigned_url(
         self,
@@ -135,12 +74,14 @@ class S3Client:
         :param object_name: The key name for the file in the bucket.
         :return: Presigned upload URL as a string.
         """
+        if self.client is None:
+            logger.error(self.s3_client_init)
+            return None
 
-        client = self._get_client()
         try:
             bucket_name = bucket_name or get_bucket_name()
 
-            url = client.generate_presigned_url(
+            url = self.client.generate_presigned_url(
                 ClientMethod="put_object",
                 Params={
                     "Bucket": bucket_name,
@@ -169,11 +110,14 @@ class S3Client:
         :return: Presigned download URL as a string.
         """
 
-        client = self._get_client()
-        try:
-            bucket_name = bucket_name or get_bucket_name()
+        if self.client is None:
+            logger.error(self.s3_client_init)
+            return None
 
-            url = client.generate_presigned_url(
+        bucket_name = bucket_name or get_bucket_name()
+
+        try:
+            url = self.client.generate_presigned_url(
                 ClientMethod="get_object",
                 Params={
                     "Bucket": bucket_name or settings.S3_STORAGE_BUCKET_NAME,
@@ -196,10 +140,14 @@ class S3Client:
         :return: Presigned Delete Object URL as a string.
         """
 
-        client = self._get_client()
+        if self.client is None:
+            logger.error(self.s3_client_init)
+            return None
+
+        bucket_name = bucket_name or get_bucket_name()
+
         try:
-            bucket_name = bucket_name or get_bucket_name()
-            url = client.generate_presigned_url(
+            url = self.client.generate_presigned_url(
                 ClientMethod="delete_object",
                 Params={
                     "Bucket": bucket_name or settings.S3_STORAGE_BUCKET_NAME,
@@ -220,10 +168,13 @@ class S3Client:
         :return: True if file was deleted, False if not
         """
 
-        client = self._get_client()
+        if self.client is None:
+            logger.error(self.s3_client_init)
+            return False
+
+        bucket_name = bucket_name or get_bucket_name()
         try:
-            bucket_name = bucket_name or get_bucket_name()
-            client.delete_object(Bucket=bucket_name, Key=file_name)
+            self.client.delete_object(Bucket=bucket_name, Key=file_name)
             return True
         except ClientError as e:
             logger.error(f"Error deleting file from bucket: {e}")
@@ -240,9 +191,12 @@ class S3Client:
         :return: True if the file exists, False otherwise
         """
 
-        client = self._get_client()
+        if self.client is None:
+            logger.error("S3 client is not initialized.")
+            return False
+
         try:
-            client.head_object(Bucket=bucket_name, Key=file_name)
+            self.client.head_object(Bucket=bucket_name, Key=file_name)
             return True
         except ClientError as e:
             # Check for a "Not Found" error code
@@ -260,16 +214,19 @@ class S3Client:
         :raises: Exception if the file already exists
         """
 
-        client = self._get_client()
         try:
-            client.upload_fileobj(file_obj, bucket_name, file_name)
+            self.client.upload_fileobj(file_obj, bucket_name, file_name)
         except ClientError as e:
             logger.error(f"Error generating presigned URL for delete: {e}")
             raise ValueError(f"Failed to upload file: {e}")
 
     def copy_s3_folder(self, bucket_name, source_folder, destination_folder):
-        client = self._get_client()
-        paginator = client.get_paginator("list_objects_v2")
+        paginator = self.client.get_paginator("list_objects_v2")
+
+        if self.client is None:
+            logger.error(self.s3_client_init)
+            return False
+
         try:
             for page in paginator.paginate(Bucket=bucket_name, Prefix=source_folder):
                 if "Contents" in page:
@@ -285,14 +242,14 @@ class S3Client:
                         copy_source = {"Bucket": bucket_name, "Key": source_key}
 
                         # Perform the copy
-                        client.copy_object(
+                        self.client.copy_object(
                             Bucket=bucket_name,
                             CopySource=copy_source,
                             Key=destination_key,
                         )
 
                         # To delete the source file after copying
-                        client.delete_object(Bucket=bucket_name, Key=source_key)
+                        self.client.delete_object(Bucket=bucket_name, Key=source_key)
 
         except ClientError as e:
             logger.error(f"Error generating presigned URL for delete: {e}")
@@ -306,10 +263,13 @@ class S3Client:
         keys_to_copy: list,
     ):
 
-        client = self._get_client()
-        try:
-            bucket_name = bucket_name or get_bucket_name()
+        if self.client is None:
+            logger.error(self.s3_client_init)
+            return False
 
+        bucket_name = bucket_name or get_bucket_name()
+
+        try:
             for key in keys_to_copy:
                 # Construct the source and destination keys
                 source_key = f"{source_folder}{key}"
@@ -318,12 +278,12 @@ class S3Client:
                 copy_source = {"Bucket": bucket_name, "Key": source_key}
 
                 # Perform the copy operation
-                client.copy_object(
+                self.client.copy_object(
                     Bucket=bucket_name, CopySource=copy_source, Key=destination_key
                 )
 
                 # Perform the delete operation
-                client.delete_object(Bucket=bucket_name, Key=source_key)
+                self.client.delete_object(Bucket=bucket_name, Key=source_key)
 
         except ClientError as e:
             logger.error(f"Error generating presigned URL for delete: {e}")
