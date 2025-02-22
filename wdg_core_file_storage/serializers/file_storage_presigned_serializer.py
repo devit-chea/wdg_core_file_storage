@@ -20,4 +20,5 @@ class DownloadPreSignedSerializer(serializers.Serializer):
 
 
 class DeletePreSignedSerializer(serializers.Serializer):
-    file_key = serializers.CharField(max_length=1024)
+    bucket_name = serializers.CharField(max_length=100, required=False)
+    file_path = serializers.CharField(max_length=1024)
