@@ -120,7 +120,7 @@ class GenerateDownloadPresignedUrlView(views.APIView):
         if not serializer.is_valid():
             return Response({"message": serializer.errors}, status=400)
         
-        file_key = serializer.validated_data.get("file_key", None)
+        file_key = serializer.validated_data.get("file_path", None)
         bucket_name = serializer.validated_data.get("bucket_name", settings.S3_STORAGE_BUCKET_NAME)
         expiry = serializer.validated_data.get("expiry", settings.S3_PRESIGNED_EXPIRE)
 
@@ -150,8 +150,8 @@ class GenerateDeletePresignedUrlView(views.APIView):
         if not serializer.is_valid():
             return Response({"message": serializer.errors}, status=400)
         
-        file_key = serializer.validated_data.get("file_key", None)
-        bucket_name = serializer.validated_data.get("bucket_name", None)
+        file_key = serializer.validated_data.get("file_path", None)
+        bucket_name = serializer.validated_data.get("bucket_name", settings.S3_STORAGE_BUCKET_NAME)
 
         if not file_key and bucket_name:
             return Response(
