@@ -44,6 +44,7 @@ class FileStorageModel(models.Model):
     write_uid = models.IntegerField(blank=True, null=True, editable=False)
 
     class Meta:
+        db_table = 'wdg_file_storage'
         abstract = abstract
 
     def __str__(self) -> str:

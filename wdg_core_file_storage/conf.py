@@ -42,16 +42,16 @@ class APISettings(_APISettings):  # pragma: no cover
         return user_settings
 
 
-api_settings = APISettings(USER_SETTINGS, DEFAULTS)
+wdg_settings = APISettings(USER_SETTINGS, DEFAULTS)
 
 
-def reload_api_settings(*args, **kwargs) -> None:  # pragma: no cover
-    global api_settings
+def reload_wdg_settings(*args, **kwargs) -> None:  # pragma: no cover
+    global wdg_settings
 
     setting, value = kwargs["setting"], kwargs["value"]
 
     if setting == "WDG_CORE_FILE_STORAGE":
-        api_settings = APISettings(value, DEFAULTS)
+        wdg_settings = APISettings(value, DEFAULTS)
 
 
-setting_changed.connect(reload_api_settings)
+setting_changed.connect(reload_wdg_settings)
