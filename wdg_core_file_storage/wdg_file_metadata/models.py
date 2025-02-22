@@ -1,10 +1,12 @@
 import uuid
 
 from django.conf import settings
-from base import MultiStorage
 from django.db import models
 
+from wdg_core_file_storage.base import MultiStorage
 from wdg_core_file_storage.constants import StorageProvider, UploadStatus
+
+abstract = "wdg_core_file_storage.wdg_file_metadata" not in settings.INSTALLED_APPS
 
 
 class FileStorageModel(models.Model):
@@ -40,7 +42,7 @@ class FileStorageModel(models.Model):
     write_uid = models.IntegerField(blank=True, null=True, editable=False)
 
     class Meta:
-        abstract = "wdg_file_storage.file_storage" not in settings.INSTALLED_APPS
+        abstract = abstract
 
     def __str__(self) -> str:
         return self.original_file_name or self.file_name
