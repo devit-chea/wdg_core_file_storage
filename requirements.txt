@@ -1,4 +1,6 @@
 Django
-djangorestframework==3.14.0
+djangorestframework
 boto3
 django-storages
+setuptools
+twine

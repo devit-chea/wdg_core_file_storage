@@ -1,10 +1,12 @@
 import uuid
 
 from django.conf import settings
-from base import MultiStorage
 from django.db import models
 
+from wdg_core_file_storage.base import MultiStorage
 from wdg_core_file_storage.constants import StorageProvider, UploadStatus
+
+abstract = "wdg_core_file_storage.wdg_file_metadata" not in settings.INSTALLED_APPS
 
 
 class FileStorageModel(models.Model):
@@ -23,12 +25,14 @@ class FileStorageModel(models.Model):
     file_size = models.CharField(max_length=250, blank=False, null=True)
     deleted = models.BooleanField(default=False, blank=True, null=True)
     storage_provider = models.CharField(
+        max_length=64,
         blank=True,
         null=True,
         default=StorageProvider.S3,
         choices=StorageProvider.CHOICES,
     )
     upload_status = models.CharField(
+        max_length=64,
         blank=True,
         null=True,
         default=UploadStatus.PENDING,
@@ -40,7 +44,8 @@ class FileStorageModel(models.Model):
     write_uid = models.IntegerField(blank=True, null=True, editable=False)
 
     class Meta:
-        abstract = "wdg_file_storage.file_storage" not in settings.INSTALLED_APPS
+        db_table = 'wdg_file_storage'
+        abstract = abstract
 
     def __str__(self) -> str:
         return self.original_file_name or self.file_name

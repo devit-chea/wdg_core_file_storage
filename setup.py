@@ -1,6 +1,7 @@
 from setuptools import setup, find_packages
 from wdg_core_file_storage import __version__
 
+
 setup(
     name="wdg-core-file-storage",
     version=__version__,
@@ -8,15 +9,15 @@ setup(
     include_package_data=True,
     install_requires=[
         "django>=4.2",
-        "boto3",
-        "storages",
+        "boto3>=1.36",
+        "django-storages>=1.14",
     ],
     python_requires=">=3.9",
     description="Support for s3 storage backends in Django",
     long_description=open("README.md").read(),
     long_description_content_type="text/markdown",
     keywords="storage service s3",
-    url="https://github.com/devit-chea/drf-file-storage",
+    url="https://github.com/devit-chea/wdg_core_file_storage",
     author="Devit Chea",
     author_email="devit.chea1998@gmail.com",
     license="MIT",
