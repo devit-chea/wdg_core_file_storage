@@ -10,7 +10,6 @@ class SaveFileMetaService:
         ref_type: str = None,
         ref_id: str = None,
         user_id: str = None,
-        company_id=None,
         file_metadata_list: list = [],
     ):
         """
@@ -31,7 +30,6 @@ class SaveFileMetaService:
             FileStorageModel(
                 ref_id=ref_id,
                 ref_type=ref_type,
-                company_id=company_id,
                 file_id=file.get("file_id"),
                 original_file_name=file.get("original_file_name"),
                 file_name=file.get("file_name"),
