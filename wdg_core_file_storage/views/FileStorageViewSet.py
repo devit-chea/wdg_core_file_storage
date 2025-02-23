@@ -8,6 +8,7 @@ from wdg_core_file_storage.serializers.file_storage_serializer import (
     FileStorageDeleteValidateSerializer,
     FileStorageSerializer,
     FileStorageValidateByRefSerializer,
+    FileStoragePreviewValidateSerializer,
 )
 from wdg_core_file_storage.wdg_file_metadata.models import FileStorageModel
 
@@ -48,7 +49,7 @@ class FileStorageByRefView(views.APIView):
 
 
 class FileStoragePreviewView(views.APIView):
-    serializer_class = FileStorageDeleteValidateSerializer
+    serializer_class = FileStoragePreviewValidateSerializer
 
     def get(self, request, *args, **kwargs):
 
