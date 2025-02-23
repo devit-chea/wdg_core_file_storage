@@ -55,15 +55,14 @@ class GenerateUploadPresignedUrlView(views.APIView):
                     original_file_name = file_meta["original_file_name"]
                     file_size = file_meta["file_size"]
                     content_type = file_meta["content_type"]
-                    tenant = "public"
 
                     # Generate presigned URL for "put_object"
                     file_name = unique_file_name_by_original(original_file_name)
 
                     if classify and module:
-                        new_obj_key = f"{add_slash(classify)}{add_slash(tenant)}{add_slash(module)}{file_name}"
+                        new_obj_key = f"{add_slash(classify)}{add_slash(module)}{file_name}"
                     else:
-                        new_obj_key = f"{add_slash(StorageClassify.TEMPS)}{add_slash(tenant)}{file_name}"
+                        new_obj_key = f"{add_slash(StorageClassify.TEMPS)}{file_name}"
 
                     storage = S3Client()
                     presigned_url = storage.generate_upload_presigned_url(
