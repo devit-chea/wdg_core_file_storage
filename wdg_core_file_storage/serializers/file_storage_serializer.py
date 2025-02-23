@@ -23,3 +23,8 @@ class FileStoragePreviewValidateSerializer(serializers.Serializer):
     file_id = serializers.CharField()
     file_name = serializers.CharField()
     
+    
+class FileStorageSaveMetaDataSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = FileStorageModel
+        fields = "__all__"
