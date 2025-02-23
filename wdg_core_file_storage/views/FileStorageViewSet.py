@@ -54,7 +54,7 @@ class FileStoragePreviewView(views.APIView):
     def get(self, request, *args, **kwargs):
 
         # Validate input using the serializer
-        serializer = self.serializer_class(data=request.data)
+        serializer = self.serializer_class(data=request.query_params)
         serializer.is_valid(raise_exception=True)
 
         if not serializer.is_valid():
