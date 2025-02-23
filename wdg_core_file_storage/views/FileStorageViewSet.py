@@ -141,7 +141,7 @@ class FileStorageDeleteView(views.APIView):
             )
 
 
-class FileStorageCreateView(views.APIView):
+class FileStorageBulkCreateView(views.APIView):
     serializer_class = FileStorageCreateValidateSerializer
 
     def post(self, request, *args, **kwargs):
