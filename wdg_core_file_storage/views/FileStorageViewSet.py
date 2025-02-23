@@ -171,13 +171,13 @@ class FileStorageCreateView(views.APIView):
                     file_name = file.get("file_name", None)
                     file_size = file.get("file_size", 0)
                     content_type = file.get("content_type")
-                    file_url = file.get("file_key")
+                    file_url = file.get("file_path")
                     description = file.get("description")
 
                     # Re-path object key path
                     remaining_path = split_first_path(file_url)
 
-                    new_file_url = f"{StorageClassify.UPLOADED}/{remaining_path}"
+                    new_file_url = f"{StorageClassify.UPLOADED}/{remaining_path}" if is_move else file_url
 
                     object_keys.append(file_name)
 
@@ -189,11 +189,11 @@ class FileStorageCreateView(views.APIView):
                         file_type=content_type,
                         ref_type=ref_type,
                         ref_id=ref_id,
-                        file=new_file_url,
+                        file_path=new_file_url,
+                        image_url=new_file_url,
                         description=description,
                         create_date=datetime.now(),
                         create_uid=self.request.user.id,
-                        company_id=self.request.user.company_id,
                     )
 
                     # Append the created file record to the list
@@ -206,13 +206,14 @@ class FileStorageCreateView(views.APIView):
                             "file_type": file_record.file_type,
                             "ref_type": file_record.ref_type,
                             "ref_id": file_record.ref_id,
-                            "file": file_record.file.url,
+                            "file_path": file_record.file_path,
+                            "image_url": file_record.image_url.url,
                             "description": file_record.description,
                             "create_date": file_record.create_date,
                             "create_uid": file_record.create_uid,
-                            "company_id": file_record.company_id,
                         }
                     )
+                    
                 if is_move:
                     # copy object to new folder and delete object from temps
                     bucket_name = settings.S3_STORAGE_BUCKET_NAME
