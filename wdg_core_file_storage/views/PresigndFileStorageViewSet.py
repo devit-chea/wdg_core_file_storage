@@ -54,7 +54,7 @@ class GenerateUploadPresignedUrlView(views.APIView):
                 for file_meta in files_metadata:
                     original_file_name = file_meta["original_file_name"]
                     file_size = file_meta["file_size"]
-                    content_type = file_meta["content_type"]
+                    content_type = file_meta["file_type"]
 
                     # Generate presigned URL for "put_object"
                     file_name = unique_file_name_by_original(original_file_name)
@@ -86,7 +86,7 @@ class GenerateUploadPresignedUrlView(views.APIView):
                             "file_name": file_name,
                             "file_path": f"{new_obj_key}",  # as File url
                             "file_size": file_size,
-                            "content_type": content_type,
+                            "file_type": content_type,
                             "presigned_url": presigned_url,
                         }
                     )
