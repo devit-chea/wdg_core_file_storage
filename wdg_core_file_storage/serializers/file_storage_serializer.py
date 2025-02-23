@@ -28,3 +28,14 @@ class FileStorageSaveMetaDataSerializer(serializers.ModelSerializer):
     class Meta:
         model = FileStorageModel
         fields = "__all__"
+        
+
+class FileInfoSerializer(serializers.Serializer):
+    original_file_name = serializers.CharField(required=True, allow_blank=False)
+    file_size = serializers.IntegerField(required=True)
+    content_type = serializers.CharField(required=True)
+    file_key = serializers.CharField(required=True)
+
+
+class FileStorageCreateValidateSerializer(serializers.Serializer):
+    file_info = serializers.ListField(child=FileInfoSerializer(), allow_empty=False)
