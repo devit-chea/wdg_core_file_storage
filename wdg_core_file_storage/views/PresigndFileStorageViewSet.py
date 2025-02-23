@@ -84,7 +84,7 @@ class GenerateUploadPresignedUrlView(views.APIView):
                             "hr_employee": hr_employee,
                             "original_file_name": original_file_name,
                             "file_name": file_name,
-                            "file_key": f"{new_obj_key}",  # as File url
+                            "file_path": f"{new_obj_key}",  # as File url
                             "file_size": file_size,
                             "content_type": content_type,
                             "presigned_url": presigned_url,
@@ -119,17 +119,17 @@ class GenerateDownloadPresignedUrlView(views.APIView):
         if not serializer.is_valid():
             return Response({"message": serializer.errors}, status=400)
         
-        file_key = serializer.validated_data.get("file_path", None)
+        file_path = serializer.validated_data.get("file_path", None)
         bucket_name = serializer.validated_data.get("bucket_name", settings.S3_STORAGE_BUCKET_NAME)
         expiry = serializer.validated_data.get("expiry", settings.S3_PRESIGNED_EXPIRE)
 
         storage = S3Client()
         download_presigned_url = storage.generate_download_presigned_url(
-            file_key=file_key, bucket_name=bucket_name, expiry=expiry
+            file_key=file_path, bucket_name=bucket_name, expiry=expiry
         )
 
         presigned_url = {
-            "file_key": file_key,
+            "file_path": file_path,
             "bucket_name": bucket_name,
             "presigned_url": download_presigned_url,
         }
@@ -149,10 +149,10 @@ class GenerateDeletePresignedUrlView(views.APIView):
         if not serializer.is_valid():
             return Response({"message": serializer.errors}, status=400)
         
-        file_key = serializer.validated_data.get("file_path", None)
+        file_path = serializer.validated_data.get("file_path", None)
         bucket_name = serializer.validated_data.get("bucket_name", settings.S3_STORAGE_BUCKET_NAME)
 
-        if not file_key and bucket_name:
+        if not file_path and bucket_name:
             return Response(
                 {"error": "No file key provided."},
                 status=status.HTTP_400_BAD_REQUEST,
@@ -160,11 +160,11 @@ class GenerateDeletePresignedUrlView(views.APIView):
 
         storage = S3Client()
         download_presigned_url = storage.generate_delete_presigned_url(
-            file_key=file_key
+            file_key=file_path
         )
 
         presigned_url = {
-            "file_key": file_key,
+            "file_path": file_path,
             "bucket_name": bucket_name,
             "presigned_url": download_presigned_url,
         }
