@@ -1,4 +1,4 @@
-from datetime import datetime
+import uuid
 from django.apps import apps
 from django.db import transaction
 from typing import List, Dict, Optional
@@ -16,7 +16,7 @@ class FileManager:
     ) -> None:
         """
         Creates or updates file metadata in the specified model.
-        
+
         :param app_name: The name of the app where the model is located.
         :param model_name: The name of the model where the data will be saved (case-insensitive).
         :param files_meta: A list of dictionaries, each containing metadata about a file.
@@ -52,30 +52,37 @@ class FileManager:
         update_records = []
         new_records = []
         existing_records = {
-            record.id: record
+            str(record.file_id): record
             for record in model.objects.filter(
-                id__in=[
-                    file["id"] for file in files_meta if "id" in file
+                file_id__in=[
+                    file["file_id"] for file in files_meta if "file_id" in file
                 ]
             )
         }
 
         for file_meta in files_meta:
-            _id = file_meta.get("id")
-            if _id and _id in existing_records:
+            file_id = str(file_meta.get("file_id")) if file_meta.get("file_id") else None
+            if file_id and file_id in existing_records:
                 # Update existing record
+                record = existing_records[file_id]
                 for key, value in file_meta.items():
-                    setattr(existing_records[_id], key, value)
-                update_records.append(existing_records[_id])
+                    setattr(record, key, value)
+                record.save()  # Save the updated record to persist changes
+                update_records.append(record)  # Append the updated instance
             else:
-                # Prepare new record
+                # Generate new ID if missing
+                if not file_id:
+                    file_meta["file_id"] = str(uuid.uuid4())
                 new_records.append(model(**file_meta))
+
+        # Determine fields to update (excluding primary key)
+        update_fields = list(files_meta[0].keys())
+        if "id" in update_fields:  # Exclude primary key field
+            update_fields.remove("id")
 
         # Save changes to the database
         with transaction.atomic():
             if update_records:
-                model.objects.bulk_update(
-                    update_records, fields=list(files_meta[0].keys())
-                )
+                model.objects.bulk_update(update_records, fields=update_fields)
             if new_records:
-                model.objects.bulk_create(new_records)
+                model.objects.bulk_create(new_records, ignore_conflicts=False)
