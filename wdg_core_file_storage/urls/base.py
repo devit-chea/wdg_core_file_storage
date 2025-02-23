@@ -3,6 +3,7 @@ from rest_framework import routers
 
 from wdg_core_file_storage.views.FileStorageViewSet import (
     FileStorageByRefView,
+    FileStorageCreateView,
     FileStorageDeleteView,
     FileStoragePreviewView,
     FileStorageViewSet,
@@ -26,6 +27,11 @@ urlpatterns = [
         "file-storage/delete",
         FileStorageDeleteView.as_view(),
         name="file_storage_delete",
+    ),
+    path(
+        "file-storage/bulk-create",
+        FileStorageCreateView.as_view(),
+        name="file_storage_bulk_create",
     ),
     path("", include(router.urls)),
 ]
