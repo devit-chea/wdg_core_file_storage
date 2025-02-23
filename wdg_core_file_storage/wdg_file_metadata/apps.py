@@ -4,4 +4,4 @@ from django.utils.translation import gettext_lazy as _
 class FileMetadataConfig(AppConfig):
     default_auto_field = 'django.db.models.BigAutoField'
     name = 'wdg_core_file_storage.wdg_file_metadata'
-    verbose_name = _("Token Blacklist")
+    verbose_name = _("WDG File Metadata")
