@@ -81,7 +81,7 @@ class FileStoragePreviewView(views.APIView):
 
             storage = S3MediaStorage()
             # Open the file from S3 storage(Base storage config in settings)
-            file_obj = storage.open(file_instance.file_path.name, "rb")
+            file_obj = storage.open(file_instance.file_path, "rb")
 
             # Return the file as a response
             return FileResponse(
