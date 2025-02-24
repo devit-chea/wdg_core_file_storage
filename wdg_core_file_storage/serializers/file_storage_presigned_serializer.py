@@ -11,6 +11,7 @@ class PreSingedUploadSerializer(serializers.Serializer):
     classify = serializers.CharField(max_length=64, required=False)
     ref_type = serializers.CharField(max_length=64, required=False)
     ref_id = serializers.IntegerField(required=False)
+    is_save_metadata = serializers.BooleanField(default=False, required=False)
     files = FileSerializer(many=True, required=True)
 
 
