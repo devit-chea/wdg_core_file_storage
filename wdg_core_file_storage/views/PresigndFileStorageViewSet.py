@@ -40,7 +40,8 @@ class GenerateUploadPresignedUrlView(views.APIView):
         classify = serializer.validated_data.get("classify", add_slash(StorageClassify.TEMPS))
         module = serializer.validated_data.get("module", StorageModule.GENERIC)
         expiry = serializer.validated_data.get("expiry", settings.S3_PRESIGNED_EXPIRE)
-
+        is_save_metadata = serializer.validated_data.get("is_save_metadata", False)
+        
         if not files_metadata:
             return Response(
                 {"error": "No files metadata provided."},
@@ -91,12 +92,13 @@ class GenerateUploadPresignedUrlView(views.APIView):
                         }
                     )
 
-                # Save File meta
-                SaveFileMetaService.create_files_meta_ref_id(
-                    ref_id=ref_id,
-                    ref_type=ref_type,
-                    file_metadata_list=presigned_urls,
-                )
+                if is_save_metadata:
+                    # Save File meta
+                    SaveFileMetaService.create_files_meta_ref_id(
+                        ref_id=ref_id,
+                        ref_type=ref_type,
+                        file_metadata_list=presigned_urls,
+                    )
 
                 return Response({"files": presigned_urls}, status=status.HTTP_200_OK)
         except Exception as e:
