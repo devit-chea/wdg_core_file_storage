@@ -136,6 +136,16 @@ class S3Client:
         :return: Presigned upload URL as a string.
         """
 
+        # Validate content_type
+        if not content_type or not isinstance(content_type, str):
+            logger.error("Content type must be a non-empty string.")
+            raise ValueError("Content type must be a non-empty string.")
+
+        # Validate file_size
+        if file_size is None or not isinstance(file_size, int) or file_size <= 0:
+            logger.error("File size must be a positive integer.")
+            raise ValueError("File size must be a positive integer.")
+
         client = self._get_client()
         try:
             bucket_name = bucket_name or get_bucket_name()

@@ -51,12 +51,22 @@ class FileManager:
         # Separate records for update and create
         update_records = []
         new_records = []
+        # Determine the unique identifier field (prefer 'file_id', fallback to primary key)
+        if "file_id" in model_fields:
+            unique_field = "file_id"
+        elif model._meta.pk is not None:
+            unique_field = model._meta.pk.name
+        else:
+            raise ValueError(f"Model '{model_name}' in app '{app_name}' does not have a primary key or 'file_id' field.")
+
         existing_records = {
-            str(record.file_id): record
+            str(getattr(record, unique_field)): record
             for record in model.objects.filter(
-                file_id__in=[
-                    file["file_id"] for file in files_meta if "file_id" in file
-                ]
+                **{
+                    f"{unique_field}__in": [
+                        file[unique_field] for file in files_meta if unique_field in file
+                    ]
+                }
             )
         }
 
