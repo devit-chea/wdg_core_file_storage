@@ -10,10 +10,13 @@ from botocore.exceptions import (
     PartialCredentialsError,
 )
 from django.conf import settings
+from django.core.cache import cache
 
 from wdg_core_file_storage.helpers.s3_helpers import get_bucket_name
 
 logger = logging.getLogger(__name__)
+
+PRESIGNED_TTL = 600  # 10 minutes
 
 
 class S3Client:
@@ -95,7 +98,7 @@ class S3Client:
         :param prefix: Prefix to filter files.
         :return: List of file keys or an empty list on failure.
         """
-        
+
         client = self._get_client()
         try:
             response = client.list_objects_v2(Bucket=bucket_name, Prefix=prefix)
@@ -338,3 +341,37 @@ class S3Client:
         except ClientError as e:
             logger.error(f"Error generating presigned URL for delete: {e}")
             raise ValueError(f"Failed to upload file: {e}")
+
+    def get_cached_presigned_url(
+        self, file_key: str, bucket_name: str, ttl: int = PRESIGNED_TTL
+    ) -> str:
+        """
+        Generate and cache a pre-signed URL for S3 file download.
+
+        Args:
+            file_key (str): The path of the file in S3 (e.g., "uploads/image.jpg").
+            ttl (int): Time-to-live in seconds for the URL and cache (default: 600s).
+
+        Returns:
+            str: Pre-signed S3 URL.
+        """
+        cache_key = f"s3:presigned:{file_key}"
+        cached_url = cache.get(cache_key)
+
+        if cached_url:
+            return cached_url
+
+        try:
+            client = self._get_client()
+            bucket_name = bucket_name or get_bucket_name()
+            
+            presigned_url = client.generate_presigned_url(
+                ClientMethod="get_object",
+                Params={"Bucket": bucket_name, "Key": file_key},
+                ExpiresIn=ttl,
+            )
+            cache.set(cache_key, presigned_url, timeout=ttl)
+            return presigned_url
+        except Exception as e:
+            # Log the error or handle as needed
+            raise RuntimeError(f"Failed to generate pre-signed URL: {e}")
