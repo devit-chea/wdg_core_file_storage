@@ -65,3 +65,9 @@ class FileStorageRelatedSerializer(serializers.ModelSerializer):
                 related_obj, "name", None
             )  # or whatever field you want
         return rep
+
+
+class FileStorageInlineSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = FileStorageModel
+        fields = ["file_name", "image_url", "file_size", "file_type"]
