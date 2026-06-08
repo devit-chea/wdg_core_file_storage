@@ -1,4 +1,5 @@
 from datetime import datetime
+from typing import Any, Optional
 
 from wdg_core_file_storage.wdg_file_metadata.models import FileStorageModel
 
@@ -7,11 +8,11 @@ class SaveFileMetaService:
     @classmethod
     def create_files_meta_ref_id(
         cls,
-        ref_type: str = None,
-        ref_id: str = None,
-        user_id: any = None,
+        ref_type: Optional[str] = None,
+        user_id: Any = None,
+        ref_id: Any = None,
         file_metadata_list: list = [],
-        extra_fields: dict = None,  # New argument for extra fields
+        extra_fields: Optional[dict] = None,  # New argument for extra fields
     ):
         """
         Bulk creates FileStorageModel instances from a list of file metadata.
